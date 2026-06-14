@@ -382,7 +382,7 @@ async function seleccionar(item,nombre,prov){
   }
 }
 
-function getMin(id){ var v=document.getElementById(id).value; if(!v) return -1; var p=v.split(':'); return parseInt(p[0])*60+parseInt(p[1]); }
+function getMin(id){ var v=(document.getElementById(id).value||'').trim(); if(!v||v==='-'||v.replace(/[0-9:]/g,'').length>0) return -1; var p=v.split(':'); var h=parseInt(p[0]); var m=parseInt(p[1]||'0'); if(isNaN(h)||isNaN(m)||h>23||m>59) return -1; return h*60+m; }
 function checkEstancia(){ var km=parseFloat(document.getElementById('km').value)||0; var v=getMin('hora-vuelta'); if(v<0){document.getElementById('alerta-estancia').classList.remove('show');return;} var vN=v<6*60?v+24*60:v; document.getElementById('alerta-estancia').classList.toggle('show',km>180&&vN>=2*60); }
 function r50(n){ return Math.round(n/50)*50; }
 function eur(n){ return n.toLocaleString('es-ES')+' €'; }
