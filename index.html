@@ -24,14 +24,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .field { margin-bottom: 1rem; }
 .field:last-child { margin-bottom: 0; }
 .field label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
-.field input[type="text"], .field input[type="time"] {
-  width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit;
-}
+.field input[type="text"], .field input[type="time"] { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
 .field input:focus { outline: none; border-color: #178A5A; }
 .autocomplete-wrap { position: relative; }
 .autocomplete-input { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
 .autocomplete-input:focus { outline: none; border-color: #178A5A; }
-.autocomplete-input.loading { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='none' stroke='%23ccc' stroke-width='2'/%3E%3Cpath d='M12 2a10 10 0 0 1 10 10' fill='none' stroke='%23178A5A' stroke-width='2' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='0.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 34px; }
+.spinner { display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border: 2px solid #e5e5e3; border-top-color: #178A5A; border-radius: 50%; animation: spin 0.7s linear infinite; }
+.spinner.show { display: block; }
+@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
 .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e5e5e3; border-top: none; border-radius: 0 0 8px 8px; z-index: 100; max-height: 220px; overflow-y: auto; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 .suggestions.show { display: block; }
 .suggestion-item { padding: 10px 12px; font-size: 14px; color: #1a1a1a; cursor: pointer; border-bottom: 1px solid #f5f5f3; }
@@ -89,10 +89,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .copy-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; cursor: pointer; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #1a1a1a; font-family: inherit; }
 .copy-btn:hover { background: #f5f5f3; }
 .section-divider { height: 1px; background: #e5e5e3; margin: 1.25rem 0; }
-@media (max-width: 480px) {
-  .prices { grid-template-columns: 1fr; }
-  .row { grid-template-columns: 1fr; }
-}
+@media (max-width: 480px) { .prices { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -112,6 +109,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <label>Localidad del evento</label>
       <div class="autocomplete-wrap">
         <input type="text" class="autocomplete-input" id="localidad" placeholder="Ej: Mijas Pueblo" autocomplete="off" oninput="onLocalidadInput(this)">
+        <div class="spinner" id="spinner"></div>
         <div class="suggestions" id="suggestions"></div>
       </div>
       <div class="km-badge" id="km-badge"></div>
@@ -142,9 +140,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <input type="time" id="hora-vuelta" value="01:00" onchange="checkEstancia()">
       </div>
     </div>
-    <div class="alert" id="alerta-estancia">
-      🌙 Por distancia y horario, se recomienda valorar estancia. El precio se calcula con y sin pernocta.
-    </div>
+    <div class="alert" id="alerta-estancia">🌙 Por distancia y horario, se recomienda valorar estancia. El precio se calcula con y sin pernocta.</div>
     <div class="nota-wrap" id="nota2">
       <textarea placeholder="Ej: El cliente dice que suelen terminar antes de las 02:00, pero no está confirmado..."></textarea>
     </div>
@@ -157,27 +153,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <button class="nota-toggle" onclick="toggleNota('nota3')">✎ Añadir nota</button>
     </div>
     <div class="options">
-      <label class="option selected">
-        <input type="radio" name="pases" value="1" checked>
-        <div><div class="option-label">1 pase</div><div class="option-desc">Lo habitual en una boda · +0 €</div></div>
-      </label>
-      <label class="option">
-        <input type="radio" name="pases" value="2mismo">
-        <div><div class="option-label">2 pases, mismo espacio</div><div class="option-desc">Doble actuación sin mover equipo · +150 €</div></div>
-      </label>
-      <label class="option">
-        <input type="radio" name="pases" value="2distinto">
-        <div><div class="option-label">2 pases, espacios distintos</div><div class="option-desc">Hay que montar y desmontar en otro lugar · +250 €</div></div>
-      </label>
+      <label class="option selected"><input type="radio" name="pases" value="1" checked><div><div class="option-label">1 pase</div><div class="option-desc">Lo habitual en una boda · +0 €</div></div></label>
+      <label class="option"><input type="radio" name="pases" value="2mismo"><div><div class="option-label">2 pases, mismo espacio</div><div class="option-desc">Doble actuación sin mover equipo · +150 €</div></div></label>
+      <label class="option"><input type="radio" name="pases" value="2distinto"><div><div class="option-label">2 pases, espacios distintos</div><div class="option-desc">Hay que montar y desmontar en otro lugar · +250 €</div></div></label>
     </div>
     <div class="divider"></div>
-    <div class="checkrow">
-      <input type="checkbox" id="mover-equipo">
-      <label for="mover-equipo">Hay que mover equipo durante el evento · +100 €</label>
-    </div>
-    <div class="nota-wrap" id="nota3">
-      <textarea placeholder="Ej: Piden tocar en cóctel y luego en la fiesta, confirmar si es el mismo espacio..."></textarea>
-    </div>
+    <div class="checkrow"><input type="checkbox" id="mover-equipo"><label for="mover-equipo">Hay que mover equipo durante el evento · +100 €</label></div>
+    <div class="nota-wrap" id="nota3"><textarea placeholder="Ej: Piden tocar en cóctel y luego en la fiesta, confirmar si es el mismo espacio..."></textarea></div>
   </div>
 
   <div class="block">
@@ -189,36 +171,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="field">
       <label>Catering para el grupo</label>
       <div class="options">
-        <label class="option">
-          <input type="radio" name="catering" value="si">
-          <div><div class="option-label">Sí, confirmado</div><div class="option-desc">El cliente da de comer al grupo · +0 €</div></div>
-        </label>
-        <label class="option selected">
-          <input type="radio" name="catering" value="noconf" checked>
-          <div><div class="option-label">No confirmado</div><div class="option-desc">Pendiente de saber · +50 €</div></div>
-        </label>
-        <label class="option">
-          <input type="radio" name="catering" value="no">
-          <div><div class="option-label">No incluido</div><div class="option-desc">El grupo paga su propia comida · +100 €</div></div>
-        </label>
+        <label class="option"><input type="radio" name="catering" value="si"><div><div class="option-label">Sí, confirmado</div><div class="option-desc">El cliente da de comer al grupo · +0 €</div></div></label>
+        <label class="option selected"><input type="radio" name="catering" value="noconf" checked><div><div class="option-label">No confirmado</div><div class="option-desc">Pendiente de saber · +50 €</div></div></label>
+        <label class="option"><input type="radio" name="catering" value="no"><div><div class="option-label">No incluido</div><div class="option-desc">El grupo paga su propia comida · +100 €</div></div></label>
       </div>
     </div>
     <div class="divider"></div>
     <div class="field">
       <label>Alojamiento</label>
       <div class="options">
-        <label class="option selected">
-          <input type="radio" name="aloj" value="no" checked onchange="toggleAloj(this)">
-          <div><div class="option-label">No necesario</div><div class="option-desc">Se vuelve a Carmona esa noche · +0 €</div></div>
-        </label>
-        <label class="option">
-          <input type="radio" name="aloj" value="cliente" onchange="toggleAloj(this)">
-          <div><div class="option-label">Lo cubre el cliente</div><div class="option-desc">El cliente facilita alojamiento · +0 €</div></div>
-        </label>
-        <label class="option">
-          <input type="radio" name="aloj" value="grupo" onchange="toggleAloj(this)">
-          <div><div class="option-label">Lo cubre el grupo</div><div class="option-desc">Introducir estimación de coste</div></div>
-        </label>
+        <label class="option selected"><input type="radio" name="aloj" value="no" checked onchange="toggleAloj(this)"><div><div class="option-label">No necesario</div><div class="option-desc">Se vuelve a Carmona esa noche · +0 €</div></div></label>
+        <label class="option"><input type="radio" name="aloj" value="cliente" onchange="toggleAloj(this)"><div><div class="option-label">Lo cubre el cliente</div><div class="option-desc">El cliente facilita alojamiento · +0 €</div></div></label>
+        <label class="option"><input type="radio" name="aloj" value="grupo" onchange="toggleAloj(this)"><div><div class="option-label">Lo cubre el grupo</div><div class="option-desc">Introducir estimación de coste</div></div></label>
       </div>
       <div class="aloj-extra" id="aloj-extra">
         <label style="font-size:13px;color:#666;display:block;margin-bottom:6px;margin-top:10px;">Coste estimado de alojamiento (€)</label>
@@ -226,9 +190,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <p class="aloj-hint">Julio/agosto en costa: 450–550 €. Interior o temporada baja: 300–400 €.</p>
       </div>
     </div>
-    <div class="nota-wrap" id="nota4">
-      <textarea placeholder="Ej: El cliente menciona que pueden dejar una habitación, pero no está confirmado..."></textarea>
-    </div>
+    <div class="nota-wrap" id="nota4"><textarea placeholder="Ej: El cliente menciona que pueden dejar una habitación, pero no está confirmado..."></textarea></div>
   </div>
 
   <div class="block">
@@ -238,26 +200,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <button class="nota-toggle" onclick="toggleNota('nota5')">✎ Añadir nota</button>
     </div>
     <div class="options">
-      <label class="option selected">
-        <input type="radio" name="comp" value="baja" checked>
-        <div><div class="option-label">Baja · +0 €</div><div class="option-desc">Un solo montaje, acceso fácil, sin esperas raras. El 80% de los bolos.</div></div>
-      </label>
-      <label class="option">
-        <input type="radio" name="comp" value="media">
-        <div><div class="option-label">Media · +50 €</div><div class="option-desc">Alguna espera larga, acceso algo incómodo, o dudas menores sin confirmar.</div></div>
-      </label>
-      <label class="option">
-        <input type="radio" name="comp" value="alta">
-        <div><div class="option-label">Alta · +150 €</div><div class="option-desc">Varios espacios, acceso difícil, mucha info sin confirmar, o situación que "huele rara".</div></div>
-      </label>
-      <label class="option">
-        <input type="radio" name="comp" value="noconf">
-        <div><div class="option-label">No confirmada · +75 €</div><div class="option-desc">No sabes nada de la logística todavía.</div></div>
-      </label>
+      <label class="option selected"><input type="radio" name="comp" value="baja" checked><div><div class="option-label">Baja · +0 €</div><div class="option-desc">Un solo montaje, acceso fácil, sin esperas raras. El 80% de los bolos.</div></div></label>
+      <label class="option"><input type="radio" name="comp" value="media"><div><div class="option-label">Media · +50 €</div><div class="option-desc">Alguna espera larga, acceso algo incómodo, o dudas menores sin confirmar.</div></div></label>
+      <label class="option"><input type="radio" name="comp" value="alta"><div><div class="option-label">Alta · +150 €</div><div class="option-desc">Varios espacios, acceso difícil, mucha info sin confirmar, o situación que "huele rara".</div></div></label>
+      <label class="option"><input type="radio" name="comp" value="noconf"><div><div class="option-label">No confirmada · +75 €</div><div class="option-desc">No sabes nada de la logística todavía.</div></div></label>
     </div>
-    <div class="nota-wrap" id="nota5">
-      <textarea placeholder="Ej: Finca con escaleras, el cliente no sabe si hay ascensor para el equipo..."></textarea>
-    </div>
+    <div class="nota-wrap" id="nota5"><textarea placeholder="Ej: Finca con escaleras, el cliente no sabe si hay ascensor para el equipo..."></textarea></div>
   </div>
 
   <div class="block">
@@ -267,22 +215,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <button class="nota-toggle" onclick="toggleNota('nota6')">✎ Añadir nota</button>
     </div>
     <div class="options">
-      <label class="option">
-        <input type="radio" name="crit" value="alto">
-        <div><div class="option-label">Alto · −75 €</div><div class="option-desc">Queremos cerrar este bolo. Precio hacia el mínimo.</div></div>
-      </label>
-      <label class="option selected">
-        <input type="radio" name="crit" value="medio" checked>
-        <div><div class="option-label">Medio · ±0 €</div><div class="option-desc">Bolo normal. Precio recomendado.</div></div>
-      </label>
-      <label class="option">
-        <input type="radio" name="crit" value="bajo">
-        <div><div class="option-label">Bajo · +75 €</div><div class="option-desc">Solo si compensa bien. Precio hacia el ideal.</div></div>
-      </label>
+      <label class="option"><input type="radio" name="crit" value="alto"><div><div class="option-label">Alto · −75 €</div><div class="option-desc">Queremos cerrar este bolo. Precio hacia el mínimo.</div></div></label>
+      <label class="option selected"><input type="radio" name="crit" value="medio" checked><div><div class="option-label">Medio · ±0 €</div><div class="option-desc">Bolo normal. Precio recomendado.</div></div></label>
+      <label class="option"><input type="radio" name="crit" value="bajo"><div><div class="option-label">Bajo · +75 €</div><div class="option-desc">Solo si compensa bien. Precio hacia el ideal.</div></div></label>
     </div>
-    <div class="nota-wrap" id="nota6">
-      <textarea placeholder="Ej: Es la hermana de un componente del grupo, queremos cerrar sí o sí..."></textarea>
-    </div>
+    <div class="nota-wrap" id="nota6"><textarea placeholder="Ej: Es la hermana de un componente del grupo, queremos cerrar sí o sí..."></textarea></div>
   </div>
 
   <button class="calc-btn" onclick="calcular()">Calcular presupuesto</button>
@@ -309,14 +246,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         </div>
       </div>
       <div class="section-divider"></div>
-      <div class="breakdown">
-        <p class="breakdown-label">Desglose interno</p>
-        <div id="breakdown-rows"></div>
-      </div>
-      <div class="notas-res" id="notas-res">
-        <p class="notas-res-label">Notas</p>
-        <div id="notas-lista"></div>
-      </div>
+      <div class="breakdown"><p class="breakdown-label">Desglose interno</p><div id="breakdown-rows"></div></div>
+      <div class="notas-res" id="notas-res"><p class="notas-res-label">Notas</p><div id="notas-lista"></div></div>
       <div class="section-divider"></div>
       <p style="font-size:13px;color:#999;margin-bottom:8px;">Texto para el cliente</p>
       <div class="texto-box" id="texto-cliente"></div>
@@ -330,266 +261,191 @@ var searchTimer = null;
 var selectedName = '';
 var ORIG_LAT = 37.4716;
 var ORIG_LON = -5.6425;
+var ANDALUCIA = ['Sevilla','Málaga','Cádiz','Córdoba','Granada','Huelva','Jaén','Almería'];
 
-// Tipos de lugar que nos interesan (municipios, pueblos, ciudades)
-var TIPOS_OK = ['city', 'town', 'village', 'municipality', 'hamlet', 'suburb', 'quarter'];
-
-document.querySelectorAll('.options').forEach(function(group) {
-  group.querySelectorAll('.option').forEach(function(opt) {
+document.querySelectorAll('.options').forEach(function(g) {
+  g.querySelectorAll('.option').forEach(function(opt) {
     opt.addEventListener('click', function() {
       var name = opt.querySelector('input[type="radio"]').name;
-      document.querySelectorAll('input[name="' + name + '"]').forEach(function(r) {
-        r.closest('.option').classList.remove('selected');
-      });
+      document.querySelectorAll('input[name="'+name+'"]').forEach(function(r){ r.closest('.option').classList.remove('selected'); });
       opt.classList.add('selected');
     });
   });
 });
 
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.autocomplete-wrap')) hideSuggestions();
-});
+document.addEventListener('click', function(e){ if(!e.target.closest('.autocomplete-wrap')) hideSuggestions(); });
 
-function toggleNota(id) {
-  var wrap = document.getElementById(id);
-  var open = wrap.classList.toggle('show');
-  var btn = wrap.closest('.block').querySelector('.nota-toggle');
-  btn.textContent = open ? '✎ Ocultar nota' : '✎ Añadir nota';
-  if (open) wrap.querySelector('textarea').focus();
-}
+function toggleNota(id){ var w=document.getElementById(id); var o=w.classList.toggle('show'); var b=w.closest('.block').querySelector('.nota-toggle'); b.textContent=o?'✎ Ocultar nota':'✎ Añadir nota'; if(o) w.querySelector('textarea').focus(); }
+function toggleAloj(r){ document.getElementById('aloj-extra').classList.toggle('show',r.value==='grupo'); }
+function hideSuggestions(){ document.getElementById('suggestions').classList.remove('show'); }
+function setBadge(t,err){ var b=document.getElementById('km-badge'); b.textContent=t; b.className='km-badge show'+(err?' err':''); }
 
-function toggleAloj(radio) {
-  document.getElementById('aloj-extra').classList.toggle('show', radio.value === 'grupo');
-}
-
-function hideSuggestions() {
-  document.getElementById('suggestions').classList.remove('show');
-}
-
-function setBadge(txt, isErr) {
-  var b = document.getElementById('km-badge');
-  b.textContent = txt;
-  b.className = 'km-badge show' + (isErr ? ' err' : '');
-}
-
-function onLocalidadInput(input) {
-  var val = input.value.trim();
-  document.getElementById('km-badge').className = 'km-badge';
-  document.getElementById('km').value = '0';
-  selectedName = '';
+function onLocalidadInput(input){
+  var val=input.value.trim();
+  document.getElementById('km-badge').className='km-badge';
+  document.getElementById('km').value='0';
+  selectedName='';
   hideSuggestions();
-  if (searchTimer) clearTimeout(searchTimer);
-  if (val.length < 3) return;
-  input.classList.add('loading');
-  searchTimer = setTimeout(function() { buscarSugerencias(val, input); }, 400);
+  if(searchTimer) clearTimeout(searchTimer);
+  if(val.length<3){ document.getElementById('spinner').classList.remove('show'); return; }
+  document.getElementById('spinner').classList.add('show');
+  searchTimer=setTimeout(function(){ buscar(val,input); },400);
 }
 
-async function buscarSugerencias(q, input) {
+async function buscar(q,input){
   try {
-    // Bias fuerte hacia Andalucía y España, solo municipios
-    var url = 'https://nominatim.openstreetmap.org/search'
-      + '?format=json&limit=8&addressdetails=1'
-      + '&countrycodes=es'
-      + '&viewbox=-9.3,44.0,4.3,36.0'  // bounding box España
-      + '&bounded=0'
-      + '&featuretype=settlement'
-      + '&q=' + encodeURIComponent(q);
+    var url='https://nominatim.openstreetmap.org/search?format=json&limit=10&addressdetails=1&countrycodes=es&q='+encodeURIComponent(q);
+    var res=await fetch(url,{headers:{'Accept-Language':'es'}});
+    var data=await res.json();
+    document.getElementById('spinner').classList.remove('show');
 
-    var res = await fetch(url, { headers: { 'Accept-Language': 'es', 'User-Agent': 'ALaFresca/1.0' } });
-    var data = await res.json();
-    input.classList.remove('loading');
-
-    // Filtrar solo tipos de lugar relevantes y ordenar priorizando Andalucía
-    var filtrados = data.filter(function(item) {
-      var tipo = item.type || item.class;
-      return TIPOS_OK.indexOf(tipo) !== -1 || item.class === 'place';
+    // Filtrar: solo tipos place (city, town, village, hamlet, suburb)
+    var PLACE_TYPES=['city','town','village','hamlet','suburb','quarter','municipality'];
+    var filtrados=data.filter(function(item){
+      return item.class==='place' || PLACE_TYPES.indexOf(item.type)!==-1;
     });
 
-    // Priorizar Andalucía (más cerca de Carmona)
-    filtrados.sort(function(a, b) {
-      var andalucia = ['Sevilla', 'Málaga', 'Cádiz', 'Córdoba', 'Granada', 'Huelva', 'Jaén', 'Almería'];
-      var aEsAnd = andalucia.some(function(p) { return (a.address.province || a.address.state || '').indexOf(p) !== -1; });
-      var bEsAnd = andalucia.some(function(p) { return (b.address.province || b.address.state || '').indexOf(p) !== -1; });
-      if (aEsAnd && !bEsAnd) return -1;
-      if (!aEsAnd && bEsAnd) return 1;
+    // Priorizar Andalucía
+    filtrados.sort(function(a,b){
+      var aA=ANDALUCIA.some(function(p){ var prov=(a.address.province||a.address.state||''); return prov.indexOf(p)!==-1; });
+      var bA=ANDALUCIA.some(function(p){ var prov=(b.address.province||b.address.state||''); return prov.indexOf(p)!==-1; });
+      if(aA&&!bA) return -1;
+      if(!aA&&bA) return 1;
       return 0;
     });
 
-    mostrarSugerencias(filtrados.slice(0, 6));
-  } catch(e) {
-    input.classList.remove('loading');
+    mostrar(filtrados.slice(0,6));
+  } catch(e){
+    document.getElementById('spinner').classList.remove('show');
   }
 }
 
-function mostrarSugerencias(items) {
-  var box = document.getElementById('suggestions');
-  if (!items.length) { hideSuggestions(); return; }
-  box.innerHTML = '';
-  items.forEach(function(item) {
-    var addr = item.address || {};
-    var nombre = addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || item.name || item.display_name.split(',')[0];
-    var provincia = addr.province || addr.county || addr.state || '';
-    var div = document.createElement('div');
-    div.className = 'suggestion-item';
-    div.innerHTML = '<strong>' + nombre + '</strong>' + (provincia ? '<small>' + provincia + '</small>' : '');
-    div.addEventListener('mousedown', function(e) {
-      e.preventDefault();
-      seleccionarLugar(item, nombre, provincia);
-    });
+function mostrar(items){
+  var box=document.getElementById('suggestions');
+  if(!items.length){ hideSuggestions(); return; }
+  box.innerHTML='';
+  items.forEach(function(item){
+    var addr=item.address||{};
+    var nombre=addr.city||addr.town||addr.village||addr.hamlet||addr.municipality||item.name||item.display_name.split(',')[0];
+    var prov=addr.province||addr.county||addr.state||'';
+    var div=document.createElement('div');
+    div.className='suggestion-item';
+    div.innerHTML='<strong>'+nombre+'</strong>'+(prov?'<small>'+prov+'</small>':'');
+    div.addEventListener('mousedown',function(e){ e.preventDefault(); seleccionar(item,nombre,prov); });
     box.appendChild(div);
   });
   box.classList.add('show');
 }
 
-async function seleccionarLugar(item, nombre, provincia) {
+async function seleccionar(item,nombre,prov){
   hideSuggestions();
-  var lat = parseFloat(item.lat);
-  var lon = parseFloat(item.lon);
-  selectedName = nombre + (provincia ? ', ' + provincia : '');
-  document.getElementById('localidad').value = selectedName;
-  document.getElementById('localidad').classList.add('loading');
+  var lat=parseFloat(item.lat), lon=parseFloat(item.lon);
+  selectedName=nombre+(prov?', '+prov:'');
+  document.getElementById('localidad').value=selectedName;
+  document.getElementById('spinner').classList.add('show');
   setBadge('Calculando distancia...', false);
-
   try {
-    var url = 'https://router.project-osrm.org/route/v1/driving/' + ORIG_LON + ',' + ORIG_LAT + ';' + lon + ',' + lat + '?overview=false';
-    var res = await fetch(url);
-    var data = await res.json();
-    document.getElementById('localidad').classList.remove('loading');
-    if (data.code !== 'Ok') throw new Error();
-    var km = Math.round(data.routes[0].distance / 1000);
-    document.getElementById('km').value = km;
-    setBadge('📍 ' + selectedName + ' — ' + km + ' km desde Carmona', false);
+    var url='https://router.project-osrm.org/route/v1/driving/'+ORIG_LON+','+ORIG_LAT+';'+lon+','+lat+'?overview=false';
+    var res=await fetch(url);
+    var data=await res.json();
+    document.getElementById('spinner').classList.remove('show');
+    if(data.code!=='Ok') throw new Error();
+    var km=Math.round(data.routes[0].distance/1000);
+    document.getElementById('km').value=km;
+    setBadge('📍 '+selectedName+' — '+km+' km desde Carmona', false);
     checkEstancia();
-  } catch(e) {
-    document.getElementById('localidad').classList.remove('loading');
+  } catch(e){
+    document.getElementById('spinner').classList.remove('show');
     setBadge('No se pudo calcular la ruta. Inténtalo de nuevo.', true);
   }
 }
 
-function getMinutos(id) {
-  var v = document.getElementById(id).value;
-  if (!v) return 0;
-  var p = v.split(':');
-  return parseInt(p[0]) * 60 + parseInt(p[1]);
+function getMin(id){ var v=document.getElementById(id).value; if(!v) return 0; var p=v.split(':'); return parseInt(p[0])*60+parseInt(p[1]); }
+function checkEstancia(){ var km=parseFloat(document.getElementById('km').value)||0; var v=getMin('hora-vuelta'); var vN=v<6*60?v+24*60:v; document.getElementById('alerta-estancia').classList.toggle('show',km>180&&vN>=2*60); }
+function r50(n){ return Math.round(n/50)*50; }
+function eur(n){ return n.toLocaleString('es-ES')+' €'; }
+
+function calcular(){
+  var km=parseFloat(document.getElementById('km').value)||0;
+  var loc=selectedName||document.getElementById('localidad').value||'la localidad';
+  var fecha=document.getElementById('fecha').value||'la fecha indicada';
+  var base=1150, despR=Math.round((km*0.92)/25)*25;
+  var v=getMin('hora-vuelta'), vN=v<6*60?v+24*60:v;
+  var jor=0,jorL='';
+  if(vN>=3*60){jor=150;jorL='Vuelta después de las 03:00';}
+  else if(vN>=1*60){jor=100;jorL='Vuelta entre 01:00 y 03:00';}
+  var pases=document.querySelector('input[name="pases"]:checked').value;
+  var pasV=0,pasL='';
+  if(pases==='2mismo'){pasV=150;pasL='2 pases, mismo espacio';}
+  if(pases==='2distinto'){pasV=250;pasL='2 pases, espacios distintos';}
+  var movV=document.getElementById('mover-equipo').checked?100:0;
+  var cat=document.querySelector('input[name="catering"]:checked').value;
+  var catV=0,catL='';
+  if(cat==='noconf'){catV=50;catL='Catering no confirmado';}
+  if(cat==='no'){catV=100;catL='Sin catering';}
+  var aloj=document.querySelector('input[name="aloj"]:checked').value;
+  var alojV=0,alojL='';
+  if(aloj==='grupo'){alojV=parseFloat(document.getElementById('aloj-coste').value)||0;alojL='Alojamiento grupo';}
+  var comp=document.querySelector('input[name="comp"]:checked').value;
+  var compV=0,compL='';
+  if(comp==='media'){compV=50;compL='Complejidad media';}
+  if(comp==='alta'){compV=150;compL='Complejidad alta';}
+  if(comp==='noconf'){compV=75;compL='Complejidad no confirmada';}
+  var crit=document.querySelector('input[name="crit"]:checked').value;
+  var critV=0,critL='';
+  if(crit==='alto'){critV=-75;critL='Criterio comercial alto';}
+  if(crit==='bajo'){critV=75;critL='Criterio comercial bajo';}
+  var total=base+despR+jor+pasV+movV+catV+alojV+compV+critV;
+  var rec=r50(total), min=rec-50, ideal=rec+50;
+  var score=0;
+  if(km>200) score++; if(km>300) score++; if(jor>=100) score++; if(jor>=150) score++;
+  if(pases!=='1') score++; if(comp==='alta') score++; if(aloj==='grupo'&&alojV>0) score++;
+  var sC,sT,sS;
+  if(score<=1){sC='#2D9A5A';sT='Bolo cómodo';sS='Sin complicaciones destacables';}
+  else if(score<=3){sC='#E09A00';sT='Bolo largo pero asumible';sS='Algún factor a tener en cuenta';}
+  else if(score<=5){sC='#E06000';sT='Bolo exigente';sS='Valorad bien antes de cerrar';}
+  else{sC='#C0392B';sT='Bolo muy exigente';sS='Solo si el precio lo justifica';}
+  document.getElementById('sem-dot').style.background=sC;
+  document.getElementById('sem-text').textContent=sT;
+  document.getElementById('sem-sub').textContent=sS;
+  document.getElementById('p-min').textContent=eur(min);
+  document.getElementById('p-rec').textContent=eur(rec);
+  document.getElementById('p-ideal').textContent=eur(ideal);
+  var est=km>180&&vN>=2*60&&aloj!=='grupo'&&aloj!=='cliente';
+  if(est){
+    var eV=km>250?500:400;
+    document.getElementById('pe-min').textContent=eur(min+eV);
+    document.getElementById('pe-rec').textContent=eur(rec+eV);
+    document.getElementById('pe-ideal').textContent=eur(ideal+eV);
+    document.getElementById('bloque-estancia').style.display='block';
+  } else { document.getElementById('bloque-estancia').style.display='none'; }
+  var rows=[['Caché base',eur(base)],['Desplazamiento ('+km+' km)','+'+eur(despR)]];
+  if(jor) rows.push([jorL,'+'+eur(jor)]);
+  if(pasV) rows.push([pasL,'+'+eur(pasV)]);
+  if(movV) rows.push(['Mover equipo','+'+eur(movV)]);
+  if(catV) rows.push([catL,'+'+eur(catV)]);
+  if(alojV) rows.push([alojL,'+'+eur(alojV)]);
+  if(compV) rows.push([compL,'+'+eur(compV)]);
+  if(critV!==0) rows.push([critL,(critV>0?'+':'')+eur(critV)]);
+  rows.push(['Total recomendado',eur(rec)]);
+  document.getElementById('breakdown-rows').innerHTML=rows.map(function(r,i){ return '<div class="brow'+(i===rows.length-1?' total':'')+'"><span>'+r[0]+'</span><span>'+r[1]+'</span></div>'; }).join('');
+  var nBloques=[{id:'nota1',label:'Desplazamiento'},{id:'nota2',label:'Jornada'},{id:'nota3',label:'Formato'},{id:'nota4',label:'Manutención'},{id:'nota5',label:'Complejidad'},{id:'nota6',label:'Criterio'}];
+  var nHtml=nBloques.map(function(nb){ var ta=document.querySelector('#'+nb.id+' textarea'); return(ta&&ta.value.trim())?'<div class="nota-item"><span class="nota-bloque">'+nb.label+'</span>'+ta.value.trim()+'</div>':''; }).join('');
+  var nRes=document.getElementById('notas-res');
+  if(nHtml){document.getElementById('notas-lista').innerHTML=nHtml;nRes.style.display='block';}else{nRes.style.display='none';}
+  var texto='Hola,\n\nPara la boda en '+loc+' ('+fecha+'), te detallo nuestra propuesta:\n\n';
+  if(est){var eV2=km>250?500:400; texto+='Opción sin alojamiento: '+eur(rec)+' + IVA\nOpción con alojamiento incluido: '+eur(rec+eV2)+' + IVA\n\nAmbas opciones incluyen la actuación de A la fresca en formato habitual, montaje, desmontaje y desplazamiento.\n\nEn caso de que el alojamiento sea gestionado directamente por la organización, aplicaría el precio sin alojamiento.';}
+  else{texto+='Actuación: '+eur(rec)+' + IVA\n\nIncluye actuación de A la fresca en formato habitual, montaje, desmontaje y desplazamiento.';}
+  texto+='\n\nCualquier duda estamos a tu disposición.';
+  document.getElementById('texto-cliente').textContent=texto;
+  document.getElementById('resultado').style.display='block';
+  document.getElementById('resultado').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function checkEstancia() {
-  var km = parseFloat(document.getElementById('km').value) || 0;
-  var vuelta = getMinutos('hora-vuelta');
-  var vueltaN = vuelta < 6 * 60 ? vuelta + 24 * 60 : vuelta;
-  document.getElementById('alerta-estancia').classList.toggle('show', km > 180 && vueltaN >= 2 * 60);
-}
-
-function round50(n) { return Math.round(n / 50) * 50; }
-function eur(n) { return n.toLocaleString('es-ES') + ' €'; }
-
-function calcular() {
-  var km = parseFloat(document.getElementById('km').value) || 0;
-  var localidad = selectedName || document.getElementById('localidad').value || 'la localidad';
-  var fecha = document.getElementById('fecha').value || 'la fecha indicada';
-  var base = 1150;
-  var despR = Math.round((km * 0.92) / 25) * 25;
-  var vuelta = getMinutos('hora-vuelta');
-  var vueltaN = vuelta < 6 * 60 ? vuelta + 24 * 60 : vuelta;
-  var jornada = 0, jornadaLabel = '';
-  if (vueltaN >= 3 * 60) { jornada = 150; jornadaLabel = 'Vuelta después de las 03:00'; }
-  else if (vueltaN >= 1 * 60) { jornada = 100; jornadaLabel = 'Vuelta entre 01:00 y 03:00'; }
-  var pases = document.querySelector('input[name="pases"]:checked').value;
-  var pasesVal = 0, pasesLabel = '';
-  if (pases === '2mismo') { pasesVal = 150; pasesLabel = '2 pases, mismo espacio'; }
-  if (pases === '2distinto') { pasesVal = 250; pasesLabel = '2 pases, espacios distintos'; }
-  var moverVal = document.getElementById('mover-equipo').checked ? 100 : 0;
-  var catering = document.querySelector('input[name="catering"]:checked').value;
-  var cateringVal = 0, cateringLabel = '';
-  if (catering === 'noconf') { cateringVal = 50; cateringLabel = 'Catering no confirmado'; }
-  if (catering === 'no') { cateringVal = 100; cateringLabel = 'Sin catering'; }
-  var aloj = document.querySelector('input[name="aloj"]:checked').value;
-  var alojVal = 0, alojLabel = '';
-  if (aloj === 'grupo') { alojVal = parseFloat(document.getElementById('aloj-coste').value) || 0; alojLabel = 'Alojamiento grupo'; }
-  var comp = document.querySelector('input[name="comp"]:checked').value;
-  var compVal = 0, compLabel = '';
-  if (comp === 'media') { compVal = 50; compLabel = 'Complejidad media'; }
-  if (comp === 'alta') { compVal = 150; compLabel = 'Complejidad alta'; }
-  if (comp === 'noconf') { compVal = 75; compLabel = 'Complejidad no confirmada'; }
-  var crit = document.querySelector('input[name="crit"]:checked').value;
-  var critVal = 0, critLabel = '';
-  if (crit === 'alto') { critVal = -75; critLabel = 'Criterio comercial alto'; }
-  if (crit === 'bajo') { critVal = 75; critLabel = 'Criterio comercial bajo'; }
-  var total = base + despR + jornada + pasesVal + moverVal + cateringVal + alojVal + compVal + critVal;
-  var rec = round50(total);
-  var min = rec - 50;
-  var ideal = rec + 50;
-  var score = 0;
-  if (km > 200) score++;
-  if (km > 300) score++;
-  if (jornada >= 100) score++;
-  if (jornada >= 150) score++;
-  if (pases !== '1') score++;
-  if (comp === 'alta') score++;
-  if (aloj === 'grupo' && alojVal > 0) score++;
-  var semColor, semTxt, semSub;
-  if (score <= 1) { semColor = '#2D9A5A'; semTxt = 'Bolo cómodo'; semSub = 'Sin complicaciones destacables'; }
-  else if (score <= 3) { semColor = '#E09A00'; semTxt = 'Bolo largo pero asumible'; semSub = 'Algún factor a tener en cuenta'; }
-  else if (score <= 5) { semColor = '#E06000'; semTxt = 'Bolo exigente'; semSub = 'Valorad bien antes de cerrar'; }
-  else { semColor = '#C0392B'; semTxt = 'Bolo muy exigente'; semSub = 'Solo si el precio lo justifica'; }
-  document.getElementById('sem-dot').style.background = semColor;
-  document.getElementById('sem-text').textContent = semTxt;
-  document.getElementById('sem-sub').textContent = semSub;
-  document.getElementById('p-min').textContent = eur(min);
-  document.getElementById('p-rec').textContent = eur(rec);
-  document.getElementById('p-ideal').textContent = eur(ideal);
-  var estancia = km > 180 && vueltaN >= 2 * 60 && aloj !== 'grupo' && aloj !== 'cliente';
-  if (estancia) {
-    var est = km > 250 ? 500 : 400;
-    document.getElementById('pe-min').textContent = eur(min + est);
-    document.getElementById('pe-rec').textContent = eur(rec + est);
-    document.getElementById('pe-ideal').textContent = eur(ideal + est);
-    document.getElementById('bloque-estancia').style.display = 'block';
-  } else { document.getElementById('bloque-estancia').style.display = 'none'; }
-  var rows = [['Caché base', eur(base)], ['Desplazamiento (' + km + ' km)', '+' + eur(despR)]];
-  if (jornada) rows.push([jornadaLabel, '+' + eur(jornada)]);
-  if (pasesVal) rows.push([pasesLabel, '+' + eur(pasesVal)]);
-  if (moverVal) rows.push(['Mover equipo', '+' + eur(moverVal)]);
-  if (cateringVal) rows.push([cateringLabel, '+' + eur(cateringVal)]);
-  if (alojVal) rows.push([alojLabel, '+' + eur(alojVal)]);
-  if (compVal) rows.push([compLabel, '+' + eur(compVal)]);
-  if (critVal !== 0) rows.push([critLabel, (critVal > 0 ? '+' : '') + eur(critVal)]);
-  rows.push(['Total recomendado', eur(rec)]);
-  document.getElementById('breakdown-rows').innerHTML = rows.map(function(r, i) {
-    return '<div class="brow' + (i === rows.length - 1 ? ' total' : '') + '"><span>' + r[0] + '</span><span>' + r[1] + '</span></div>';
-  }).join('');
-  var notasBloques = [
-    { id: 'nota1', label: 'Desplazamiento' }, { id: 'nota2', label: 'Jornada' },
-    { id: 'nota3', label: 'Formato' }, { id: 'nota4', label: 'Manutención' },
-    { id: 'nota5', label: 'Complejidad' }, { id: 'nota6', label: 'Criterio' }
-  ];
-  var notasHtml = notasBloques.map(function(nb) {
-    var ta = document.querySelector('#' + nb.id + ' textarea');
-    return (ta && ta.value.trim()) ? '<div class="nota-item"><span class="nota-bloque">' + nb.label + '</span>' + ta.value.trim() + '</div>' : '';
-  }).join('');
-  var notasRes = document.getElementById('notas-res');
-  if (notasHtml) { document.getElementById('notas-lista').innerHTML = notasHtml; notasRes.style.display = 'block'; }
-  else { notasRes.style.display = 'none'; }
-  var texto = 'Hola,\n\nPara la boda en ' + localidad + ' (' + fecha + '), te detallo nuestra propuesta:\n\n';
-  if (estancia) {
-    var est2 = km > 250 ? 500 : 400;
-    texto += 'Opción sin alojamiento: ' + eur(rec) + ' + IVA\n';
-    texto += 'Opción con alojamiento incluido: ' + eur(rec + est2) + ' + IVA\n\n';
-    texto += 'Ambas opciones incluyen la actuación de A la fresca en formato habitual, montaje, desmontaje y desplazamiento.\n\nEn caso de que el alojamiento sea gestionado directamente por la organización, aplicaría el precio sin alojamiento.';
-  } else {
-    texto += 'Actuación: ' + eur(rec) + ' + IVA\n\nIncluye actuación de A la fresca en formato habitual, montaje, desmontaje y desplazamiento.';
-  }
-  texto += '\n\nCualquier duda estamos a tu disposición.';
-  document.getElementById('texto-cliente').textContent = texto;
-  document.getElementById('resultado').style.display = 'block';
-  document.getElementById('resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function copiarTexto() {
-  navigator.clipboard.writeText(document.getElementById('texto-cliente').textContent).then(function() {
-    var btn = document.querySelector('.copy-btn');
-    btn.textContent = '✓ Copiado';
-    setTimeout(function() { btn.textContent = '📋 Copiar texto'; }, 2000);
+function copiarTexto(){
+  navigator.clipboard.writeText(document.getElementById('texto-cliente').textContent).then(function(){
+    var b=document.querySelector('.copy-btn'); b.textContent='✓ Copiado';
+    setTimeout(function(){b.textContent='📋 Copiar texto';},2000);
   });
 }
 </script>
