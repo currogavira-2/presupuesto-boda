@@ -312,7 +312,7 @@ function onLocalidadInput(input){
 async function buscar(q,input){
   try {
     // Photon API — mejor autocompletado para España, centrado en Andalucía
-    var url='https://photon.komoot.io/api/?q='+encodeURIComponent(q)+'&lang=es&limit=8&lat=37.4716&lon=-5.6425&location_bias_scale=0.5';
+    var url='https://photon.komoot.io/api/?q='+encodeURIComponent(q)+'&lang=es&limit=8&lat=37.4716&lon=-5.6425';
     var res=await fetch(url);
     var data=await res.json();
     document.getElementById('spinner').classList.remove('show');
