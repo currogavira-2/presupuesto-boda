@@ -152,11 +152,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="row">
       <div class="field">
         <label>Hora de actuación</label>
-        <input type="time" id="hora-act" placeholder="Ej: 21:00">
+        <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="hora-act-txt" placeholder="Ej: 2100 o 21:00" style="flex:1;" oninput="parseHora('hora-act-txt','hora-act')">
+        <input type="time" id="hora-act" step="900" style="width:120px;" onchange="syncHoraToTxt('hora-act','hora-act-txt')">
+      </div>
       </div>
       <div class="field">
         <label>Hora estimada de vuelta a Carmona</label>
-        <input type="time" id="hora-vuelta" placeholder="Ej: 01:00" onchange="checkEstancia()">
+        <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="hora-vuelta-txt" placeholder="Ej: 0100 o 01:00" style="flex:1;" oninput="parseHora('hora-vuelta-txt','hora-vuelta')">
+        <input type="time" id="hora-vuelta" step="900" style="width:120px;" onchange="syncHoraToTxt('hora-vuelta','hora-vuelta-txt');checkEstancia()">
+      </div>
       </div>
     </div>
     <div class="alert" id="alerta-estancia">🌙 Por distancia y horario, se recomienda valorar estancia. El precio se calcula con y sin pernocta.</div>
@@ -382,6 +388,26 @@ async function seleccionar(item,nombre,prov){
   }
 }
 
+function parseHora(txtId, timeId){
+  var raw = document.getElementById(txtId).value.replace(/[^0-9]/g,'');
+  var h, m;
+  if(raw.length===3){ h=parseInt(raw[0]); m=parseInt(raw.slice(1)); }
+  else if(raw.length===4){ h=parseInt(raw.slice(0,2)); m=parseInt(raw.slice(2)); }
+  else if(raw.length===1||raw.length===2){ h=parseInt(raw); m=0; }
+  else { document.getElementById(timeId).value=''; return; }
+  // Round minutes to nearest 15
+  m=Math.round(m/15)*15;
+  if(m===60){m=0;h+=1;}
+  if(h>23||m>59){ document.getElementById(timeId).value=''; return; }
+  var hStr=String(h).padStart(2,'0');
+  var mStr=String(m).padStart(2,'0');
+  document.getElementById(timeId).value=hStr+':'+mStr;
+  if(timeId==='hora-vuelta') checkEstancia();
+}
+function syncHoraToTxt(timeId, txtId){
+  var v=document.getElementById(timeId).value;
+  if(v) document.getElementById(txtId).value=v;
+}
 function getMin(id){ var v=(document.getElementById(id).value||'').trim(); if(!v||v==='-'||v.replace(/[0-9:]/g,'').length>0) return -1; var p=v.split(':'); var h=parseInt(p[0]); var m=parseInt(p[1]||'0'); if(isNaN(h)||isNaN(m)||h>23||m>59) return -1; return h*60+m; }
 function checkEstancia(){ var km=parseFloat(document.getElementById('km').value)||0; var v=getMin('hora-vuelta'); if(v<0){document.getElementById('alerta-estancia').classList.remove('show');return;} var vN=v<6*60?v+24*60:v; document.getElementById('alerta-estancia').classList.toggle('show',km>180&&vN>=2*60); }
 function r50(n){ return Math.round(n/50)*50; }
