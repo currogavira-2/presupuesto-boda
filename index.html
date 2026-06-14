@@ -24,7 +24,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .field { margin-bottom: 1rem; }
 .field:last-child { margin-bottom: 0; }
 .field label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
-.field input[type="text"], .field input[type="time"], .field input[type="number"] { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
+.field input[type="text"], .field input[type="time"], .field input[type="number"], .field input[type="date"] { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; } .field input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }
 .field input:focus { outline: none; border-color: #178A5A; }
 .autocomplete-wrap { position: relative; }
 .autocomplete-input { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
@@ -152,11 +152,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="row">
       <div class="field">
         <label>Hora de actuación</label>
-        <input type="time" id="hora-act" value="21:00" placeholder="21:00">
+        <input type="time" id="hora-act" placeholder="Ej: 21:00">
       </div>
       <div class="field">
         <label>Hora estimada de vuelta a Carmona</label>
-        <input type="time" id="hora-vuelta" value="01:00" placeholder="01:00" onchange="checkEstancia()">
+        <input type="time" id="hora-vuelta" placeholder="Ej: 01:00" onchange="checkEstancia()">
       </div>
     </div>
     <div class="alert" id="alerta-estancia">🌙 Por distancia y horario, se recomienda valorar estancia. El precio se calcula con y sin pernocta.</div>
