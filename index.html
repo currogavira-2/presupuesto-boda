@@ -126,7 +126,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
     <div class="field">
       <label>Fecha del evento</label>
-      <input type="text" id="fecha" placeholder="Ej: 10 de julio de 2027">
+      <input type="date" id="fecha">
     </div>
     <div class="peajes-row">
       <div class="peajes-check">
@@ -152,11 +152,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="row">
       <div class="field">
         <label>Hora de actuación</label>
-        <input type="time" id="hora-act" value="21:00">
+        <input type="time" id="hora-act" value="21:00" placeholder="21:00">
       </div>
       <div class="field">
         <label>Hora estimada de vuelta a Carmona</label>
-        <input type="time" id="hora-vuelta" value="01:00" onchange="checkEstancia()">
+        <input type="time" id="hora-vuelta" value="01:00" placeholder="01:00" onchange="checkEstancia()">
       </div>
     </div>
     <div class="alert" id="alerta-estancia">🌙 Por distancia y horario, se recomienda valorar estancia. El precio se calcula con y sin pernocta.</div>
@@ -382,19 +382,19 @@ async function seleccionar(item,nombre,prov){
   }
 }
 
-function getMin(id){ var v=document.getElementById(id).value; if(!v) return 0; var p=v.split(':'); return parseInt(p[0])*60+parseInt(p[1]); }
-function checkEstancia(){ var km=parseFloat(document.getElementById('km').value)||0; var v=getMin('hora-vuelta'); var vN=v<6*60?v+24*60:v; document.getElementById('alerta-estancia').classList.toggle('show',km>180&&vN>=2*60); }
+function getMin(id){ var v=document.getElementById(id).value; if(!v) return -1; var p=v.split(':'); return parseInt(p[0])*60+parseInt(p[1]); }
+function checkEstancia(){ var km=parseFloat(document.getElementById('km').value)||0; var v=getMin('hora-vuelta'); if(v<0){document.getElementById('alerta-estancia').classList.remove('show');return;} var vN=v<6*60?v+24*60:v; document.getElementById('alerta-estancia').classList.toggle('show',km>180&&vN>=2*60); }
 function r50(n){ return Math.round(n/50)*50; }
 function eur(n){ return n.toLocaleString('es-ES')+' €'; }
 
 function calcular(){
   var km=parseFloat(document.getElementById('km').value)||0;
   var loc=selectedName||document.getElementById('localidad').value||'la localidad';
-  var fecha=document.getElementById('fecha').value||'la fecha indicada';
+  var fechaRaw=document.getElementById('fecha').value; var fecha='la fecha indicada'; if(fechaRaw){ var fd=new Date(fechaRaw+'T12:00:00'); fecha=fd.toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); fecha=fecha.charAt(0).toUpperCase()+fecha.slice(1); }
   var base=1150;
   var despR=Math.round((km*0.92)/25)*25;
   var peajesV=document.getElementById('peajes-check').checked?(parseFloat(document.getElementById('peajes-val').value)||0)*2:0;
-  var v=getMin('hora-vuelta'), vN=v<6*60?v+24*60:v;
+  var v=getMin('hora-vuelta'); if(v<0){var vN=-1;}else{var vN=v<6*60?v+24*60:v;}
   var jor=0,jorL='';
   if(vN>=3*60){jor=150;jorL='Vuelta después de las 03:00';}
   else if(vN>=1*60){jor=100;jorL='Vuelta entre 01:00 y 03:00';}
@@ -435,7 +435,7 @@ function calcular(){
   document.getElementById('p-min').textContent=eur(min);
   document.getElementById('p-rec').textContent=eur(rec);
   document.getElementById('p-ideal').textContent=eur(ideal);
-  var est=km>180&&vN>=2*60&&aloj!=='grupo'&&aloj!=='cliente';
+  var est=vN>=0&&km>180&&vN>=2*60&&aloj!=='grupo'&&aloj!=='cliente';
   if(est){
     var eV=km>250?500:400;
     document.getElementById('pe-min').textContent=eur(min+eV);
