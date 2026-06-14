@@ -15,7 +15,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .block-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
 .block-num { width: 26px; height: 26px; border-radius: 50%; background: #f0f0ee; border: 1px solid #e0e0de; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #666; flex-shrink: 0; }
 .block-title { font-size: 15px; font-weight: 600; color: #1a1a1a; flex: 1; }
-.nota-toggle { font-size: 12px; color: #999; cursor: pointer; background: none; border: none; padding: 0; display: flex; align-items: center; gap: 4px; }
+.nota-toggle { font-size: 12px; color: #999; cursor: pointer; background: none; border: none; padding: 0; }
 .nota-toggle:hover { color: #555; }
 .nota-wrap { display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f0f0ee; }
 .nota-wrap.show { display: block; }
@@ -24,10 +24,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .field { margin-bottom: 1rem; }
 .field:last-child { margin-bottom: 0; }
 .field label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
-.field input[type="text"], .field input[type="number"], .field input[type="time"] {
+.field input[type="text"], .field input[type="time"] {
   width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit;
 }
 .field input:focus { outline: none; border-color: #178A5A; }
+
+.autocomplete-wrap { position: relative; }
+.autocomplete-input { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
+.autocomplete-input:focus { outline: none; border-color: #178A5A; }
+.autocomplete-input.loading { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='none' stroke='%23ccc' stroke-width='2'/%3E%3Cpath d='M12 2a10 10 0 0 1 10 10' fill='none' stroke='%23178A5A' stroke-width='2' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='0.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 34px; }
+.suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e5e5e3; border-top: none; border-radius: 0 0 8px 8px; z-index: 100; max-height: 200px; overflow-y: auto; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.suggestions.show { display: block; }
+.suggestion-item { padding: 10px 12px; font-size: 14px; color: #1a1a1a; cursor: pointer; border-bottom: 1px solid #f5f5f3; }
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover, .suggestion-item.active { background: #f0faf5; }
+.suggestion-item small { display: block; font-size: 12px; color: #999; margin-top: 2px; }
+.km-badge { display: none; margin-top: 7px; font-size: 13px; color: #178A5A; }
+.km-badge.show { display: block; }
+.km-badge.err { color: #c0392b; }
+
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .options { display: flex; flex-direction: column; gap: 6px; }
 .option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid #e5e5e3; border-radius: 8px; cursor: pointer; transition: border-color 0.15s; }
@@ -39,8 +54,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .checkrow { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
 .checkrow input[type="checkbox"] { accent-color: #178A5A; width: 16px; height: 16px; flex-shrink: 0; cursor: pointer; }
 .checkrow label { font-size: 14px; color: #1a1a1a; cursor: pointer; }
-.alert { background: #fff8e6; border: 1px solid #f0c060; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #7a5500; display: none; margin-top: 10px; gap: 8px; align-items: flex-start; }
-.alert.show { display: flex; }
+.alert { background: #fff8e6; border: 1px solid #f0c060; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #7a5500; display: none; margin-top: 10px; }
+.alert.show { display: block; }
 .aloj-extra { display: none; margin-top: 10px; }
 .aloj-extra.show { display: block; }
 .aloj-extra input { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
@@ -96,15 +111,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <span class="block-title">Desplazamiento</span>
       <button class="nota-toggle" onclick="toggleNota('nota1')">✎ Añadir nota</button>
     </div>
-    <div class="row">
-      <div class="field">
-        <label>Localidad del evento</label>
-        <input type="text" id="localidad" placeholder="Ej: Mijas Pueblo">
+    <div class="field">
+      <label>Localidad del evento</label>
+      <div class="autocomplete-wrap">
+        <input type="text" class="autocomplete-input" id="localidad" placeholder="Ej: Mijas Pueblo" autocomplete="off" oninput="onLocalidadInput(this)">
+        <div class="suggestions" id="suggestions"></div>
       </div>
-      <div class="field">
-        <label>Km desde Carmona (ida)</label>
-        <input type="number" id="km" placeholder="Ej: 208" min="0" oninput="checkEstancia()">
-      </div>
+      <div class="km-badge" id="km-badge"></div>
+      <input type="hidden" id="km" value="0">
     </div>
     <div class="field">
       <label>Fecha del evento</label>
@@ -279,14 +293,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   <div id="resultado" style="display:none;">
     <div class="result">
       <p class="result-label">Resultado</p>
-
       <div class="semaforo">
         <div class="sem-dot" id="sem-dot"></div>
         <span class="sem-text" id="sem-text"></span>
         <span class="sem-sub" id="sem-sub"></span>
       </div>
-
-      <div class="prices" id="prices-main">
+      <div class="prices">
         <div class="price-card">
           <div class="price-plabel">Mínimo</div>
           <div class="price-val" id="p-min"></div>
@@ -303,7 +315,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <div class="price-sub">+ IVA</div>
         </div>
       </div>
-
       <div id="bloque-estancia" style="display:none;">
         <p class="estancia-label">Con estancia incluida</p>
         <div class="prices">
@@ -324,19 +335,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           </div>
         </div>
       </div>
-
       <div class="section-divider"></div>
-
       <div class="breakdown">
         <p class="breakdown-label">Desglose interno</p>
         <div id="breakdown-rows"></div>
       </div>
-
       <div class="notas-res" id="notas-res">
         <p class="notas-res-label">Notas</p>
         <div id="notas-lista"></div>
       </div>
-
       <div class="section-divider"></div>
       <p style="font-size:13px;color:#999;margin-bottom:8px;">Texto para el cliente</p>
       <div class="texto-box" id="texto-cliente"></div>
@@ -346,6 +353,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 </div>
 
 <script>
+var searchTimer = null;
+var selectedLat = null;
+var selectedLon = null;
+var selectedName = '';
+var ORIG_LAT = 37.4716;
+var ORIG_LON = -5.6425;
+
 document.querySelectorAll('.options').forEach(function(group) {
   group.querySelectorAll('.option').forEach(function(opt) {
     opt.addEventListener('click', function() {
@@ -358,6 +372,10 @@ document.querySelectorAll('.options').forEach(function(group) {
   });
 });
 
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.autocomplete-wrap')) hideSuggestions();
+});
+
 function toggleNota(id) {
   var wrap = document.getElementById(id);
   var open = wrap.classList.toggle('show');
@@ -367,8 +385,91 @@ function toggleNota(id) {
 }
 
 function toggleAloj(radio) {
-  var extra = document.getElementById('aloj-extra');
-  extra.classList.toggle('show', radio.value === 'grupo');
+  document.getElementById('aloj-extra').classList.toggle('show', radio.value === 'grupo');
+}
+
+function hideSuggestions() {
+  document.getElementById('suggestions').classList.remove('show');
+}
+
+function setBadge(txt, isErr) {
+  var b = document.getElementById('km-badge');
+  b.textContent = txt;
+  b.className = 'km-badge show' + (isErr ? ' err' : '');
+}
+
+function clearBadge() {
+  var b = document.getElementById('km-badge');
+  b.className = 'km-badge';
+  b.textContent = '';
+}
+
+function onLocalidadInput(input) {
+  var val = input.value.trim();
+  clearBadge();
+  document.getElementById('km').value = '0';
+  selectedLat = null; selectedLon = null; selectedName = '';
+  hideSuggestions();
+  if (searchTimer) clearTimeout(searchTimer);
+  if (val.length < 3) return;
+  input.classList.add('loading');
+  searchTimer = setTimeout(function() { buscarSugerencias(val, input); }, 350);
+}
+
+async function buscarSugerencias(q, input) {
+  try {
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=6&countrycodes=es&q=' + encodeURIComponent(q) + '&addressdetails=1';
+    var res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+    var data = await res.json();
+    input.classList.remove('loading');
+    mostrarSugerencias(data);
+  } catch(e) {
+    input.classList.remove('loading');
+  }
+}
+
+function mostrarSugerencias(items) {
+  var box = document.getElementById('suggestions');
+  if (!items.length) { hideSuggestions(); return; }
+  box.innerHTML = '';
+  items.forEach(function(item) {
+    var addr = item.address || {};
+    var nombre = addr.city || addr.town || addr.village || addr.municipality || item.name || item.display_name.split(',')[0];
+    var provincia = addr.province || addr.state || '';
+    var div = document.createElement('div');
+    div.className = 'suggestion-item';
+    div.innerHTML = nombre + (provincia ? '<small>' + provincia + '</small>' : '');
+    div.addEventListener('click', function() {
+      seleccionarLugar(item, nombre, provincia);
+    });
+    box.appendChild(div);
+  });
+  box.classList.add('show');
+}
+
+async function seleccionarLugar(item, nombre, provincia) {
+  hideSuggestions();
+  selectedLat = parseFloat(item.lat);
+  selectedLon = parseFloat(item.lon);
+  selectedName = nombre + (provincia ? ', ' + provincia : '');
+  document.getElementById('localidad').value = selectedName;
+  document.getElementById('localidad').classList.add('loading');
+  setBadge('Calculando distancia...', false);
+
+  try {
+    var url = 'https://router.project-osrm.org/route/v1/driving/' + ORIG_LON + ',' + ORIG_LAT + ';' + selectedLon + ',' + selectedLat + '?overview=false';
+    var res = await fetch(url);
+    var data = await res.json();
+    document.getElementById('localidad').classList.remove('loading');
+    if (data.code !== 'Ok') throw new Error();
+    var km = Math.round(data.routes[0].distance / 1000);
+    document.getElementById('km').value = km;
+    setBadge('📍 ' + selectedName + ' — ' + km + ' km desde Carmona', false);
+    checkEstancia();
+  } catch(e) {
+    document.getElementById('localidad').classList.remove('loading');
+    setBadge('No se pudo calcular la ruta. Comprueba la localidad.', true);
+  }
 }
 
 function getMinutos(id) {
@@ -390,53 +491,40 @@ function eur(n) { return n.toLocaleString('es-ES') + ' €'; }
 
 function calcular() {
   var km = parseFloat(document.getElementById('km').value) || 0;
-  var localidad = document.getElementById('localidad').value || 'la localidad';
+  var localidad = selectedName || document.getElementById('localidad').value || 'la localidad';
   var fecha = document.getElementById('fecha').value || 'la fecha indicada';
-
   var base = 1150;
   var despR = Math.round((km * 0.92) / 25) * 25;
-
   var vuelta = getMinutos('hora-vuelta');
   var vueltaN = vuelta < 6 * 60 ? vuelta + 24 * 60 : vuelta;
   var jornada = 0, jornadaLabel = '';
   if (vueltaN >= 3 * 60) { jornada = 150; jornadaLabel = 'Vuelta después de las 03:00'; }
   else if (vueltaN >= 1 * 60) { jornada = 100; jornadaLabel = 'Vuelta entre 01:00 y 03:00'; }
-
   var pases = document.querySelector('input[name="pases"]:checked').value;
   var pasesVal = 0, pasesLabel = '';
   if (pases === '2mismo') { pasesVal = 150; pasesLabel = '2 pases, mismo espacio'; }
   if (pases === '2distinto') { pasesVal = 250; pasesLabel = '2 pases, espacios distintos'; }
-
   var moverVal = document.getElementById('mover-equipo').checked ? 100 : 0;
-
   var catering = document.querySelector('input[name="catering"]:checked').value;
   var cateringVal = 0, cateringLabel = '';
   if (catering === 'noconf') { cateringVal = 50; cateringLabel = 'Catering no confirmado'; }
   if (catering === 'no') { cateringVal = 100; cateringLabel = 'Sin catering'; }
-
   var aloj = document.querySelector('input[name="aloj"]:checked').value;
   var alojVal = 0, alojLabel = '';
-  if (aloj === 'grupo') {
-    alojVal = parseFloat(document.getElementById('aloj-coste').value) || 0;
-    alojLabel = 'Alojamiento grupo';
-  }
-
+  if (aloj === 'grupo') { alojVal = parseFloat(document.getElementById('aloj-coste').value) || 0; alojLabel = 'Alojamiento grupo'; }
   var comp = document.querySelector('input[name="comp"]:checked').value;
   var compVal = 0, compLabel = '';
   if (comp === 'media') { compVal = 50; compLabel = 'Complejidad media'; }
   if (comp === 'alta') { compVal = 150; compLabel = 'Complejidad alta'; }
   if (comp === 'noconf') { compVal = 75; compLabel = 'Complejidad no confirmada'; }
-
   var crit = document.querySelector('input[name="crit"]:checked').value;
   var critVal = 0, critLabel = '';
   if (crit === 'alto') { critVal = -75; critLabel = 'Criterio comercial alto'; }
   if (crit === 'bajo') { critVal = 75; critLabel = 'Criterio comercial bajo'; }
-
   var total = base + despR + jornada + pasesVal + moverVal + cateringVal + alojVal + compVal + critVal;
   var rec = round50(total);
   var min = rec - 50;
   var ideal = rec + 50;
-
   var score = 0;
   if (km > 200) score++;
   if (km > 300) score++;
@@ -445,21 +533,17 @@ function calcular() {
   if (pases !== '1') score++;
   if (comp === 'alta') score++;
   if (aloj === 'grupo' && alojVal > 0) score++;
-
   var semColor, semTxt, semSub;
   if (score <= 1) { semColor = '#2D9A5A'; semTxt = 'Bolo cómodo'; semSub = 'Sin complicaciones destacables'; }
   else if (score <= 3) { semColor = '#E09A00'; semTxt = 'Bolo largo pero asumible'; semSub = 'Algún factor a tener en cuenta'; }
   else if (score <= 5) { semColor = '#E06000'; semTxt = 'Bolo exigente'; semSub = 'Valorad bien antes de cerrar'; }
   else { semColor = '#C0392B'; semTxt = 'Bolo muy exigente'; semSub = 'Solo si el precio lo justifica'; }
-
   document.getElementById('sem-dot').style.background = semColor;
   document.getElementById('sem-text').textContent = semTxt;
   document.getElementById('sem-sub').textContent = semSub;
-
   document.getElementById('p-min').textContent = eur(min);
   document.getElementById('p-rec').textContent = eur(rec);
   document.getElementById('p-ideal').textContent = eur(ideal);
-
   var estancia = km > 180 && vueltaN >= 2 * 60 && aloj !== 'grupo' && aloj !== 'cliente';
   var bloqueEst = document.getElementById('bloque-estancia');
   if (estancia) {
@@ -468,10 +552,7 @@ function calcular() {
     document.getElementById('pe-rec').textContent = eur(rec + est);
     document.getElementById('pe-ideal').textContent = eur(ideal + est);
     bloqueEst.style.display = 'block';
-  } else {
-    bloqueEst.style.display = 'none';
-  }
-
+  } else { bloqueEst.style.display = 'none'; }
   var rows = [['Caché base', eur(base)], ['Desplazamiento (' + km + ' km)', '+' + eur(despR)]];
   if (jornada) rows.push([jornadaLabel, '+' + eur(jornada)]);
   if (pasesVal) rows.push([pasesLabel, '+' + eur(pasesVal)]);
@@ -481,34 +562,21 @@ function calcular() {
   if (compVal) rows.push([compLabel, '+' + eur(compVal)]);
   if (critVal !== 0) rows.push([critLabel, (critVal > 0 ? '+' : '') + eur(critVal)]);
   rows.push(['Total recomendado', eur(rec)]);
-
   document.getElementById('breakdown-rows').innerHTML = rows.map(function(r, i) {
     return '<div class="brow' + (i === rows.length - 1 ? ' total' : '') + '"><span>' + r[0] + '</span><span>' + r[1] + '</span></div>';
   }).join('');
-
   var notasBloques = [
-    { id: 'nota1', label: 'Desplazamiento' },
-    { id: 'nota2', label: 'Jornada' },
-    { id: 'nota3', label: 'Formato' },
-    { id: 'nota4', label: 'Manutención' },
-    { id: 'nota5', label: 'Complejidad' },
-    { id: 'nota6', label: 'Criterio' }
+    { id: 'nota1', label: 'Desplazamiento' }, { id: 'nota2', label: 'Jornada' },
+    { id: 'nota3', label: 'Formato' }, { id: 'nota4', label: 'Manutención' },
+    { id: 'nota5', label: 'Complejidad' }, { id: 'nota6', label: 'Criterio' }
   ];
   var notasHtml = notasBloques.map(function(nb) {
     var ta = document.querySelector('#' + nb.id + ' textarea');
-    if (ta && ta.value.trim()) {
-      return '<div class="nota-item"><span class="nota-bloque">' + nb.label + '</span>' + ta.value.trim() + '</div>';
-    }
-    return '';
+    return (ta && ta.value.trim()) ? '<div class="nota-item"><span class="nota-bloque">' + nb.label + '</span>' + ta.value.trim() + '</div>' : '';
   }).join('');
   var notasRes = document.getElementById('notas-res');
-  if (notasHtml) {
-    document.getElementById('notas-lista').innerHTML = notasHtml;
-    notasRes.style.display = 'block';
-  } else {
-    notasRes.style.display = 'none';
-  }
-
+  if (notasHtml) { document.getElementById('notas-lista').innerHTML = notasHtml; notasRes.style.display = 'block'; }
+  else { notasRes.style.display = 'none'; }
   var texto = 'Hola,\n\nPara la boda en ' + localidad + ' (' + fecha + '), te detallo nuestra propuesta:\n\n';
   if (estancia) {
     var est2 = km > 250 ? 500 : 400;
@@ -520,7 +588,6 @@ function calcular() {
   }
   texto += '\n\nCualquier duda estamos a tu disposición.';
   document.getElementById('texto-cliente').textContent = texto;
-
   document.getElementById('resultado').style.display = 'block';
   document.getElementById('resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
