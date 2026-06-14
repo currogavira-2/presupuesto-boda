@@ -24,7 +24,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .field { margin-bottom: 1rem; }
 .field:last-child { margin-bottom: 0; }
 .field label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
-.field input[type="text"], .field input[type="time"] { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
+.field input[type="text"], .field input[type="time"], .field input[type="number"] { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
 .field input:focus { outline: none; border-color: #178A5A; }
 .autocomplete-wrap { position: relative; }
 .autocomplete-input { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
@@ -41,6 +41,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .km-badge { display: none; margin-top: 7px; font-size: 13px; color: #178A5A; }
 .km-badge.show { display: block; }
 .km-badge.err { color: #c0392b; }
+.peajes-row { display: flex; align-items: center; gap: 10px; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f0f0ee; }
+.peajes-check { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.peajes-check input[type="checkbox"] { accent-color: #178A5A; width: 16px; height: 16px; cursor: pointer; }
+.peajes-check label { font-size: 14px; color: #1a1a1a; cursor: pointer; white-space: nowrap; }
+.peajes-importe { display: none; flex: 1; }
+.peajes-importe.show { display: flex; align-items: center; gap: 8px; }
+.peajes-importe input { width: 100%; padding: 7px 10px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
+.peajes-importe input:focus { outline: none; border-color: #178A5A; }
+.peajes-importe span { font-size: 13px; color: #888; white-space: nowrap; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .options { display: flex; flex-direction: column; gap: 6px; }
 .option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid #e5e5e3; border-radius: 8px; cursor: pointer; transition: border-color 0.15s; }
@@ -119,6 +128,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <label>Fecha del evento</label>
       <input type="text" id="fecha" placeholder="Ej: 10 de julio de 2027">
     </div>
+    <div class="peajes-row">
+      <div class="peajes-check">
+        <input type="checkbox" id="peajes-check" onchange="togglePeajes(this)">
+        <label for="peajes-check">Hay peajes</label>
+      </div>
+      <div class="peajes-importe" id="peajes-importe">
+        <input type="number" id="peajes-val" placeholder="Ej: 18" min="0">
+        <span>€ ida y vuelta</span>
+      </div>
+    </div>
     <div class="nota-wrap" id="nota1">
       <textarea placeholder="Ej: Finca en carretera de montaña, confirmar acceso para furgoneta..."></textarea>
     </div>
@@ -141,9 +160,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       </div>
     </div>
     <div class="alert" id="alerta-estancia">🌙 Por distancia y horario, se recomienda valorar estancia. El precio se calcula con y sin pernocta.</div>
-    <div class="nota-wrap" id="nota2">
-      <textarea placeholder="Ej: El cliente dice que suelen terminar antes de las 02:00, pero no está confirmado..."></textarea>
-    </div>
+    <div class="nota-wrap" id="nota2"><textarea placeholder="Ej: El cliente dice que suelen terminar antes de las 02:00, pero no está confirmado..."></textarea></div>
   </div>
 
   <div class="block">
@@ -261,7 +278,6 @@ var searchTimer = null;
 var selectedName = '';
 var ORIG_LAT = 37.4716;
 var ORIG_LON = -5.6425;
-var ANDALUCIA = ['Sevilla','Málaga','Cádiz','Córdoba','Granada','Huelva','Jaén','Almería'];
 
 document.querySelectorAll('.options').forEach(function(g) {
   g.querySelectorAll('.option').forEach(function(opt) {
@@ -277,6 +293,7 @@ document.addEventListener('click', function(e){ if(!e.target.closest('.autocompl
 
 function toggleNota(id){ var w=document.getElementById(id); var o=w.classList.toggle('show'); var b=w.closest('.block').querySelector('.nota-toggle'); b.textContent=o?'✎ Ocultar nota':'✎ Añadir nota'; if(o) w.querySelector('textarea').focus(); }
 function toggleAloj(r){ document.getElementById('aloj-extra').classList.toggle('show',r.value==='grupo'); }
+function togglePeajes(cb){ document.getElementById('peajes-importe').classList.toggle('show',cb.checked); }
 function hideSuggestions(){ document.getElementById('suggestions').classList.remove('show'); }
 function setBadge(t,err){ var b=document.getElementById('km-badge'); b.textContent=t; b.className='km-badge show'+(err?' err':''); }
 
@@ -294,24 +311,27 @@ function onLocalidadInput(input){
 
 async function buscar(q,input){
   try {
-    var url='https://nominatim.openstreetmap.org/search?format=json&limit=10&addressdetails=1&countrycodes=es&q='+encodeURIComponent(q);
-    var res=await fetch(url,{headers:{'Accept-Language':'es'}});
+    // Photon API — mejor autocompletado para España, centrado en Andalucía
+    var url='https://photon.komoot.io/api/?q='+encodeURIComponent(q)+'&lang=es&limit=8&lat=37.4716&lon=-5.6425&location_bias_scale=0.5';
+    var res=await fetch(url);
     var data=await res.json();
     document.getElementById('spinner').classList.remove('show');
 
-    // Filtrar: solo tipos place (city, town, village, hamlet, suburb)
-    var PLACE_TYPES=['city','town','village','hamlet','suburb','quarter','municipality'];
-    var filtrados=data.filter(function(item){
-      return item.class==='place' || PLACE_TYPES.indexOf(item.type)!==-1;
+    var features=data.features||[];
+    // Filtrar solo lugares habitados (city, town, village, suburb, locality)
+    var TIPOS=['city','town','village','suburb','locality','hamlet','municipality'];
+    var filtrados=features.filter(function(f){
+      var tipo=(f.properties.type||'').toLowerCase();
+      return TIPOS.indexOf(tipo)!==-1;
     });
 
-    // Priorizar Andalucía
-    filtrados.sort(function(a,b){
-      var aA=ANDALUCIA.some(function(p){ var prov=(a.address.province||a.address.state||''); return prov.indexOf(p)!==-1; });
-      var bA=ANDALUCIA.some(function(p){ var prov=(b.address.province||b.address.state||''); return prov.indexOf(p)!==-1; });
-      if(aA&&!bA) return -1;
-      if(!aA&&bA) return 1;
-      return 0;
+    // Deduplicar por nombre+país
+    var vistos={};
+    filtrados=filtrados.filter(function(f){
+      var k=(f.properties.name||'')+'|'+(f.properties.state||'');
+      if(vistos[k]) return false;
+      vistos[k]=true;
+      return true;
     });
 
     mostrar(filtrados.slice(0,6));
@@ -325,9 +345,9 @@ function mostrar(items){
   if(!items.length){ hideSuggestions(); return; }
   box.innerHTML='';
   items.forEach(function(item){
-    var addr=item.address||{};
-    var nombre=addr.city||addr.town||addr.village||addr.hamlet||addr.municipality||item.name||item.display_name.split(',')[0];
-    var prov=addr.province||addr.county||addr.state||'';
+    var p=item.properties||{};
+    var nombre=p.name||'';
+    var prov=p.county||p.state||'';
     var div=document.createElement('div');
     div.className='suggestion-item';
     div.innerHTML='<strong>'+nombre+'</strong>'+(prov?'<small>'+prov+'</small>':'');
@@ -339,7 +359,9 @@ function mostrar(items){
 
 async function seleccionar(item,nombre,prov){
   hideSuggestions();
-  var lat=parseFloat(item.lat), lon=parseFloat(item.lon);
+  var coords=item.geometry&&item.geometry.coordinates;
+  if(!coords){ setBadge('No se pudo obtener la ubicación.',true); return; }
+  var lon=coords[0], lat=coords[1];
   selectedName=nombre+(prov?', '+prov:'');
   document.getElementById('localidad').value=selectedName;
   document.getElementById('spinner').classList.add('show');
@@ -369,7 +391,9 @@ function calcular(){
   var km=parseFloat(document.getElementById('km').value)||0;
   var loc=selectedName||document.getElementById('localidad').value||'la localidad';
   var fecha=document.getElementById('fecha').value||'la fecha indicada';
-  var base=1150, despR=Math.round((km*0.92)/25)*25;
+  var base=1150;
+  var despR=Math.round((km*0.92)/25)*25;
+  var peajesV=document.getElementById('peajes-check').checked?(parseFloat(document.getElementById('peajes-val').value)||0)*2:0;
   var v=getMin('hora-vuelta'), vN=v<6*60?v+24*60:v;
   var jor=0,jorL='';
   if(vN>=3*60){jor=150;jorL='Vuelta después de las 03:00';}
@@ -395,7 +419,7 @@ function calcular(){
   var critV=0,critL='';
   if(crit==='alto'){critV=-75;critL='Criterio comercial alto';}
   if(crit==='bajo'){critV=75;critL='Criterio comercial bajo';}
-  var total=base+despR+jor+pasV+movV+catV+alojV+compV+critV;
+  var total=base+despR+peajesV+jor+pasV+movV+catV+alojV+compV+critV;
   var rec=r50(total), min=rec-50, ideal=rec+50;
   var score=0;
   if(km>200) score++; if(km>300) score++; if(jor>=100) score++; if(jor>=150) score++;
@@ -420,6 +444,7 @@ function calcular(){
     document.getElementById('bloque-estancia').style.display='block';
   } else { document.getElementById('bloque-estancia').style.display='none'; }
   var rows=[['Caché base',eur(base)],['Desplazamiento ('+km+' km)','+'+eur(despR)]];
+  if(peajesV) rows.push(['Peajes (ida y vuelta)','+'+eur(peajesV)]);
   if(jor) rows.push([jorL,'+'+eur(jor)]);
   if(pasV) rows.push([pasL,'+'+eur(pasV)]);
   if(movV) rows.push(['Mover equipo','+'+eur(movV)]);
@@ -429,10 +454,10 @@ function calcular(){
   if(critV!==0) rows.push([critL,(critV>0?'+':'')+eur(critV)]);
   rows.push(['Total recomendado',eur(rec)]);
   document.getElementById('breakdown-rows').innerHTML=rows.map(function(r,i){ return '<div class="brow'+(i===rows.length-1?' total':'')+'"><span>'+r[0]+'</span><span>'+r[1]+'</span></div>'; }).join('');
-  var nBloques=[{id:'nota1',label:'Desplazamiento'},{id:'nota2',label:'Jornada'},{id:'nota3',label:'Formato'},{id:'nota4',label:'Manutención'},{id:'nota5',label:'Complejidad'},{id:'nota6',label:'Criterio'}];
-  var nHtml=nBloques.map(function(nb){ var ta=document.querySelector('#'+nb.id+' textarea'); return(ta&&ta.value.trim())?'<div class="nota-item"><span class="nota-bloque">'+nb.label+'</span>'+ta.value.trim()+'</div>':''; }).join('');
-  var nRes=document.getElementById('notas-res');
-  if(nHtml){document.getElementById('notas-lista').innerHTML=nHtml;nRes.style.display='block';}else{nRes.style.display='none';}
+  var nB=[{id:'nota1',label:'Desplazamiento'},{id:'nota2',label:'Jornada'},{id:'nota3',label:'Formato'},{id:'nota4',label:'Manutención'},{id:'nota5',label:'Complejidad'},{id:'nota6',label:'Criterio'}];
+  var nH=nB.map(function(nb){ var ta=document.querySelector('#'+nb.id+' textarea'); return(ta&&ta.value.trim())?'<div class="nota-item"><span class="nota-bloque">'+nb.label+'</span>'+ta.value.trim()+'</div>':''; }).join('');
+  var nR=document.getElementById('notas-res');
+  if(nH){document.getElementById('notas-lista').innerHTML=nH;nR.style.display='block';}else{nR.style.display='none';}
   var texto='Hola,\n\nPara la boda en '+loc+' ('+fecha+'), te detallo nuestra propuesta:\n\n';
   if(est){var eV2=km>250?500:400; texto+='Opción sin alojamiento: '+eur(rec)+' + IVA\nOpción con alojamiento incluido: '+eur(rec+eV2)+' + IVA\n\nAmbas opciones incluyen la actuación de A la fresca en formato habitual, montaje, desmontaje y desplazamiento.\n\nEn caso de que el alojamiento sea gestionado directamente por la organización, aplicaría el precio sin alojamiento.';}
   else{texto+='Actuación: '+eur(rec)+' + IVA\n\nIncluye actuación de A la fresca en formato habitual, montaje, desmontaje y desplazamiento.';}
