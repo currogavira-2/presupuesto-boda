@@ -28,21 +28,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit;
 }
 .field input:focus { outline: none; border-color: #178A5A; }
-
 .autocomplete-wrap { position: relative; }
 .autocomplete-input { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
 .autocomplete-input:focus { outline: none; border-color: #178A5A; }
 .autocomplete-input.loading { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='none' stroke='%23ccc' stroke-width='2'/%3E%3Cpath d='M12 2a10 10 0 0 1 10 10' fill='none' stroke='%23178A5A' stroke-width='2' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='0.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 34px; }
-.suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e5e5e3; border-top: none; border-radius: 0 0 8px 8px; z-index: 100; max-height: 200px; overflow-y: auto; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e5e5e3; border-top: none; border-radius: 0 0 8px 8px; z-index: 100; max-height: 220px; overflow-y: auto; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 .suggestions.show { display: block; }
 .suggestion-item { padding: 10px 12px; font-size: 14px; color: #1a1a1a; cursor: pointer; border-bottom: 1px solid #f5f5f3; }
 .suggestion-item:last-child { border-bottom: none; }
-.suggestion-item:hover, .suggestion-item.active { background: #f0faf5; }
+.suggestion-item:hover { background: #f0faf5; }
 .suggestion-item small { display: block; font-size: 12px; color: #999; margin-top: 2px; }
 .km-badge { display: none; margin-top: 7px; font-size: 13px; color: #178A5A; }
 .km-badge.show { display: block; }
 .km-badge.err { color: #c0392b; }
-
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .options { display: flex; flex-direction: column; gap: 6px; }
 .option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid #e5e5e3; border-radius: 8px; cursor: pointer; transition: border-color 0.15s; }
@@ -59,7 +57,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .aloj-extra { display: none; margin-top: 10px; }
 .aloj-extra.show { display: block; }
 .aloj-extra input { width: 100%; padding: 9px 11px; font-size: 14px; border: 1px solid #e5e5e3; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; }
-.aloj-extra input:focus { outline: none; border-color: #178A5A; }
 .aloj-hint { font-size: 12px; color: #888; margin-top: 6px; line-height: 1.4; }
 .divider { height: 1px; background: #f0f0ee; margin: 1rem 0; }
 .calc-btn { width: 100%; padding: 13px; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: #178A5A; color: #fff; cursor: pointer; margin-top: 1rem; transition: background 0.15s; }
@@ -89,7 +86,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .nota-item { font-size: 13px; color: #1a1a1a; margin-bottom: 6px; line-height: 1.5; }
 .nota-bloque { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.04em; margin-right: 6px; }
 .texto-box { background: #fafaf8; border: 1px solid #e5e5e3; border-radius: 8px; padding: 1rem; font-size: 13px; color: #1a1a1a; line-height: 1.7; white-space: pre-wrap; margin-bottom: 10px; }
-.copy-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; cursor: pointer; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #1a1a1a; font-family: inherit; transition: background 0.15s; }
+.copy-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; cursor: pointer; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #1a1a1a; font-family: inherit; }
 .copy-btn:hover { background: #f5f5f3; }
 .section-divider { height: 1px; background: #e5e5e3; margin: 1.25rem 0; }
 @media (max-width: 480px) {
@@ -299,40 +296,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <span class="sem-sub" id="sem-sub"></span>
       </div>
       <div class="prices">
-        <div class="price-card">
-          <div class="price-plabel">Mínimo</div>
-          <div class="price-val" id="p-min"></div>
-          <div class="price-sub">+ IVA</div>
-        </div>
-        <div class="price-card rec">
-          <div class="price-plabel">Recomendado</div>
-          <div class="price-val rec" id="p-rec"></div>
-          <div class="price-sub">+ IVA</div>
-        </div>
-        <div class="price-card">
-          <div class="price-plabel">Ideal</div>
-          <div class="price-val" id="p-ideal"></div>
-          <div class="price-sub">+ IVA</div>
-        </div>
+        <div class="price-card"><div class="price-plabel">Mínimo</div><div class="price-val" id="p-min"></div><div class="price-sub">+ IVA</div></div>
+        <div class="price-card rec"><div class="price-plabel">Recomendado</div><div class="price-val rec" id="p-rec"></div><div class="price-sub">+ IVA</div></div>
+        <div class="price-card"><div class="price-plabel">Ideal</div><div class="price-val" id="p-ideal"></div><div class="price-sub">+ IVA</div></div>
       </div>
       <div id="bloque-estancia" style="display:none;">
         <p class="estancia-label">Con estancia incluida</p>
         <div class="prices">
-          <div class="price-card">
-            <div class="price-plabel">Mínimo</div>
-            <div class="price-val" id="pe-min"></div>
-            <div class="price-sub">+ IVA</div>
-          </div>
-          <div class="price-card rec">
-            <div class="price-plabel">Recomendado</div>
-            <div class="price-val rec" id="pe-rec"></div>
-            <div class="price-sub">+ IVA</div>
-          </div>
-          <div class="price-card">
-            <div class="price-plabel">Ideal</div>
-            <div class="price-val" id="pe-ideal"></div>
-            <div class="price-sub">+ IVA</div>
-          </div>
+          <div class="price-card"><div class="price-plabel">Mínimo</div><div class="price-val" id="pe-min"></div><div class="price-sub">+ IVA</div></div>
+          <div class="price-card rec"><div class="price-plabel">Recomendado</div><div class="price-val rec" id="pe-rec"></div><div class="price-sub">+ IVA</div></div>
+          <div class="price-card"><div class="price-plabel">Ideal</div><div class="price-val" id="pe-ideal"></div><div class="price-sub">+ IVA</div></div>
         </div>
       </div>
       <div class="section-divider"></div>
@@ -354,11 +327,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 <script>
 var searchTimer = null;
-var selectedLat = null;
-var selectedLon = null;
 var selectedName = '';
 var ORIG_LAT = 37.4716;
 var ORIG_LON = -5.6425;
+
+// Tipos de lugar que nos interesan (municipios, pueblos, ciudades)
+var TIPOS_OK = ['city', 'town', 'village', 'municipality', 'hamlet', 'suburb', 'quarter'];
 
 document.querySelectorAll('.options').forEach(function(group) {
   group.querySelectorAll('.option').forEach(function(opt) {
@@ -398,31 +372,50 @@ function setBadge(txt, isErr) {
   b.className = 'km-badge show' + (isErr ? ' err' : '');
 }
 
-function clearBadge() {
-  var b = document.getElementById('km-badge');
-  b.className = 'km-badge';
-  b.textContent = '';
-}
-
 function onLocalidadInput(input) {
   var val = input.value.trim();
-  clearBadge();
+  document.getElementById('km-badge').className = 'km-badge';
   document.getElementById('km').value = '0';
-  selectedLat = null; selectedLon = null; selectedName = '';
+  selectedName = '';
   hideSuggestions();
   if (searchTimer) clearTimeout(searchTimer);
   if (val.length < 3) return;
   input.classList.add('loading');
-  searchTimer = setTimeout(function() { buscarSugerencias(val, input); }, 350);
+  searchTimer = setTimeout(function() { buscarSugerencias(val, input); }, 400);
 }
 
 async function buscarSugerencias(q, input) {
   try {
-    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=6&countrycodes=es&q=' + encodeURIComponent(q) + '&addressdetails=1';
-    var res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+    // Bias fuerte hacia Andalucía y España, solo municipios
+    var url = 'https://nominatim.openstreetmap.org/search'
+      + '?format=json&limit=8&addressdetails=1'
+      + '&countrycodes=es'
+      + '&viewbox=-9.3,44.0,4.3,36.0'  // bounding box España
+      + '&bounded=0'
+      + '&featuretype=settlement'
+      + '&q=' + encodeURIComponent(q);
+
+    var res = await fetch(url, { headers: { 'Accept-Language': 'es', 'User-Agent': 'ALaFresca/1.0' } });
     var data = await res.json();
     input.classList.remove('loading');
-    mostrarSugerencias(data);
+
+    // Filtrar solo tipos de lugar relevantes y ordenar priorizando Andalucía
+    var filtrados = data.filter(function(item) {
+      var tipo = item.type || item.class;
+      return TIPOS_OK.indexOf(tipo) !== -1 || item.class === 'place';
+    });
+
+    // Priorizar Andalucía (más cerca de Carmona)
+    filtrados.sort(function(a, b) {
+      var andalucia = ['Sevilla', 'Málaga', 'Cádiz', 'Córdoba', 'Granada', 'Huelva', 'Jaén', 'Almería'];
+      var aEsAnd = andalucia.some(function(p) { return (a.address.province || a.address.state || '').indexOf(p) !== -1; });
+      var bEsAnd = andalucia.some(function(p) { return (b.address.province || b.address.state || '').indexOf(p) !== -1; });
+      if (aEsAnd && !bEsAnd) return -1;
+      if (!aEsAnd && bEsAnd) return 1;
+      return 0;
+    });
+
+    mostrarSugerencias(filtrados.slice(0, 6));
   } catch(e) {
     input.classList.remove('loading');
   }
@@ -434,12 +427,13 @@ function mostrarSugerencias(items) {
   box.innerHTML = '';
   items.forEach(function(item) {
     var addr = item.address || {};
-    var nombre = addr.city || addr.town || addr.village || addr.municipality || item.name || item.display_name.split(',')[0];
-    var provincia = addr.province || addr.state || '';
+    var nombre = addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || item.name || item.display_name.split(',')[0];
+    var provincia = addr.province || addr.county || addr.state || '';
     var div = document.createElement('div');
     div.className = 'suggestion-item';
-    div.innerHTML = nombre + (provincia ? '<small>' + provincia + '</small>' : '');
-    div.addEventListener('click', function() {
+    div.innerHTML = '<strong>' + nombre + '</strong>' + (provincia ? '<small>' + provincia + '</small>' : '');
+    div.addEventListener('mousedown', function(e) {
+      e.preventDefault();
       seleccionarLugar(item, nombre, provincia);
     });
     box.appendChild(div);
@@ -449,15 +443,15 @@ function mostrarSugerencias(items) {
 
 async function seleccionarLugar(item, nombre, provincia) {
   hideSuggestions();
-  selectedLat = parseFloat(item.lat);
-  selectedLon = parseFloat(item.lon);
+  var lat = parseFloat(item.lat);
+  var lon = parseFloat(item.lon);
   selectedName = nombre + (provincia ? ', ' + provincia : '');
   document.getElementById('localidad').value = selectedName;
   document.getElementById('localidad').classList.add('loading');
   setBadge('Calculando distancia...', false);
 
   try {
-    var url = 'https://router.project-osrm.org/route/v1/driving/' + ORIG_LON + ',' + ORIG_LAT + ';' + selectedLon + ',' + selectedLat + '?overview=false';
+    var url = 'https://router.project-osrm.org/route/v1/driving/' + ORIG_LON + ',' + ORIG_LAT + ';' + lon + ',' + lat + '?overview=false';
     var res = await fetch(url);
     var data = await res.json();
     document.getElementById('localidad').classList.remove('loading');
@@ -468,7 +462,7 @@ async function seleccionarLugar(item, nombre, provincia) {
     checkEstancia();
   } catch(e) {
     document.getElementById('localidad').classList.remove('loading');
-    setBadge('No se pudo calcular la ruta. Comprueba la localidad.', true);
+    setBadge('No se pudo calcular la ruta. Inténtalo de nuevo.', true);
   }
 }
 
@@ -545,14 +539,13 @@ function calcular() {
   document.getElementById('p-rec').textContent = eur(rec);
   document.getElementById('p-ideal').textContent = eur(ideal);
   var estancia = km > 180 && vueltaN >= 2 * 60 && aloj !== 'grupo' && aloj !== 'cliente';
-  var bloqueEst = document.getElementById('bloque-estancia');
   if (estancia) {
     var est = km > 250 ? 500 : 400;
     document.getElementById('pe-min').textContent = eur(min + est);
     document.getElementById('pe-rec').textContent = eur(rec + est);
     document.getElementById('pe-ideal').textContent = eur(ideal + est);
-    bloqueEst.style.display = 'block';
-  } else { bloqueEst.style.display = 'none'; }
+    document.getElementById('bloque-estancia').style.display = 'block';
+  } else { document.getElementById('bloque-estancia').style.display = 'none'; }
   var rows = [['Caché base', eur(base)], ['Desplazamiento (' + km + ' km)', '+' + eur(despR)]];
   if (jornada) rows.push([jornadaLabel, '+' + eur(jornada)]);
   if (pasesVal) rows.push([pasesLabel, '+' + eur(pasesVal)]);
@@ -593,8 +586,7 @@ function calcular() {
 }
 
 function copiarTexto() {
-  var txt = document.getElementById('texto-cliente').textContent;
-  navigator.clipboard.writeText(txt).then(function() {
+  navigator.clipboard.writeText(document.getElementById('texto-cliente').textContent).then(function() {
     var btn = document.querySelector('.copy-btn');
     btn.textContent = '✓ Copiado';
     setTimeout(function() { btn.textContent = '📋 Copiar texto'; }, 2000);
